@@ -3,17 +3,20 @@ from models import db, Train
 import os
 
 app = Flask(__name__)
+
+# Configure database (defaults to SQLite if DATABASE_URL not set)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///trains.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 db.init_app(app)
 
-@app.before_first_request
-def create_tables():
+# ✅ Create tables when the app starts (Render-friendly)
+with app.app_context():
     db.create_all()
 
 @app.route('/')
-def index():
-    return "🚆 Train Schedule API is running!"
+def home():
+    return "🚆 Train Schedule API is Running!"
 
 @app.route('/trains', methods=['GET'])
 def get_trains():
@@ -55,5 +58,6 @@ def update_train(train_id):
     db.session.commit()
     return jsonify({"message": "Train updated successfully!"})
 
+# ✅ Required for Render and Railway
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
